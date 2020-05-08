@@ -95,7 +95,7 @@ def get_config(start: Path = None) -> Mapping:
     pyproject_path = _get_pyproject_path(start)
     if pyproject_path is None:
         return _default_config()["tool"]["poetry-dynamic-versioning"]
-    pyproject = tomlkit.parse(pyproject_path.read_text())
+    pyproject = tomlkit.parse(pyproject_path.read_text(encoding='utf8'))
     result = _deep_merge_dicts(_default_config(), pyproject)["tool"]["poetry-dynamic-versioning"]
 
     for key in ["pattern", "style", "metadata", "format", "format-jinja"]:
@@ -109,7 +109,7 @@ def _get_version(config: Mapping, pyproject_path: Path) -> Tuple[Version, str]:
     if _state.version:
         return _state.version
 
-    pyproject = tomlkit.parse(pyproject_path.read_text())
+    pyproject = tomlkit.parse(pyproject_path.read_text(encoding='utf8'))
     if not _state.original_version:
         _state.original_version = pyproject["tool"]["poetry"]["version"]
 
@@ -158,7 +158,7 @@ def _substitute_version(
         for match in root.glob(file_glob):
             files.add(match.resolve())
     for file in files:
-        content = file.read_text()
+        content = file.read_text(encoding='utf8')
         _state.substitutions[file] = content
         for pattern in patterns:
             content = re.sub(pattern, r"\g<1>{}\g<2>".format(version), content, flags=re.MULTILINE)
@@ -192,7 +192,7 @@ def _patch_poetry_create() -> None:
         instance._package._version = poetry_version_module.Version.parse(dynamic_version)
         instance._package._pretty_version = dynamic_version
 
-        pyproject = tomlkit.parse(pyproject_path.read_text())
+        pyproject = tomlkit.parse(pyproject_path.read_text(encoding='utf8'))
         pyproject["tool"]["poetry"]["version"] = dynamic_version
         pyproject_path.write_text(tomlkit.dumps(pyproject))
 
@@ -289,7 +289,7 @@ def deactivate() -> None:
         pyproject_path = _get_pyproject_path()
         if pyproject_path is None:
             return
-        pyproject = tomlkit.parse(pyproject_path.read_text())
+        pyproject = tomlkit.parse(pyproject_path.read_text(encoding='utf8'))
         pyproject["tool"]["poetry"]["version"] = _state.original_version
         pyproject_path.write_text(tomlkit.dumps(pyproject))
         _state.original_version = None
